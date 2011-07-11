@@ -1,0 +1,7 @@
+Ford is inspired in Henry Ford's techniques of production (Fordism), which enabled the mass production of vehicles in the early 20th century through assembly lines.
+
+In the context of software development, pipeline is a powerful framework to speed up and parallelize repetitive tasks.
+
+Ford will help you to parallelize any ruby script through the concept of specialized and distributed Stages.
+
+Warning: Ford is not released. It's under development.
