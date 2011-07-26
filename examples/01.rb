@@ -9,7 +9,7 @@ module MyPipeline
     def run
       
       10.times do |i|
-        enqueue_to Stage2, 'obj'
+        send_to Stage2, 'obj'
       end
       
     end
@@ -18,7 +18,7 @@ module MyPipeline
   
   class Stage2 < Ford::Stage
     
-    def consume_input
+    def consume
       sleep 1 # fake some processing
       puts @input
     end

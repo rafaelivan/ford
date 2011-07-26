@@ -24,7 +24,7 @@ module Ford
   #
   class Stage
     
-    attr_accessor :config, :logger, :input
+    attr_accessor :config, :logger, :item
     
     #
     # Create a queue for each Stage subclass
@@ -62,7 +62,7 @@ module Ford
             obj.run
           rescue Exception => exc
             obj.logger.fatal("\nFailed to execute the #{self.class}'s thread (#{tid})")
-            obj.logger.fatal("was consuming: #{obj.input}")
+            obj.logger.fatal("was consuming: #{obj.item}")
             obj.logger.fatal("#{exc}\n#{exc.backtrace.join("\n")}")
           end
         }
@@ -81,7 +81,7 @@ module Ford
       data = {
         :debug => false, # If true, logs messages during execution
         :log_to => STDOUT, # Logging path or IO instance
-        :input_stage => self.class # Reference to the input Stage (normally, itself). Will load objs from its queue.
+        :from_stage => self.class # Reference of the Stage that is used as data input (normally, itself). Will load items from its queue.
       }.merge(options)
       
       @config = Ford::Config.new(data) # instance configuration
@@ -93,44 +93,44 @@ module Ford
     # Run the stage
     #
     def run      
-      while (@input = pop_input)
+      while (@item = pop_item)
         start_consume_at = Time.now
         
         logger.debug("Consuming...(#{config.thread_id})")
-        consume_input
+        consume
         
         logger.debug("Consumed in #{Time.now - start_consume_at} seconds (#{config.thread_id})")
       end      
     end
     
     #
-    # When using the default run, consume_input should be implemented.
+    # When using the default run, consume should be implemented.
     #
-    def consume_input
+    def consume
       raise 'Must implement!'
     end
     
     #
-    # Pop an object from the input queue
+    # Pop an item from the queue
     #
-    def pop_input
-      @config.input_stage.queue.pop
+    def pop_item
+      @config.from_stage.queue.pop
     end
     
     #
-    # Enqueue an object in the stage's queue
+    # Enqueue an item in the stage's queue
     #
-    def enqueue_to(stage_class, obj)
-      stage_class.queue.push obj
-      logger.debug("Enqueued into #{stage_class}'s queue (#{config.thread_id})")
+    def send_to(stage_class, item)
+      stage_class.queue.push item
+      logger.debug("Sent to #{stage_class}'s queue (#{config.thread_id})")
     end
     
     #
-    # Enqueue an object in the current stage's queue
+    # Enqueue an item in the current stage's queue
     #
-    def enqueue_back(obj)
-      self.class.queue.push obj
-      logger.debug("Enqueued back (#{config.thread_id})")
+    def send_back(item)
+      self.class.queue.push item
+      logger.debug("Sent back (#{config.thread_id})")
     end
     
   end
