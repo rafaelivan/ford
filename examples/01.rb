@@ -4,8 +4,10 @@ require 'ford'
 module MyPipeline
 
   def self.run
-    MyPipeline::Stage1.init_stage(:threads => 1, :debug => true)
-    MyPipeline::Stage2.init_stage(:threads => 3, :debug => true)
+    Ford.debug = true # Default debugging behaviour.
+    
+    MyPipeline::Stage1.init_stage(:threads => 1, :debug => false)
+    MyPipeline::Stage2.init_stage(:threads => 3)
     
     Ford.join
   end

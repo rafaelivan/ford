@@ -14,7 +14,7 @@ module Ford
   # Join all threads and wait them to finish
   #
   def self.join
-    @@threads.each {|t| t.join}
+    @@threads.each { |t| t.join }
   end
 
   #
@@ -44,12 +44,12 @@ module Ford
     #
     # Fork this stage
     #
-    
+    # TODO
     
     #
     # Create a stage in thread mode
     #
-    def self.init_stage(options={})
+    def self.init_stage(options = {})
       options = {
         :threads => 1
       }.merge(options)
@@ -76,14 +76,13 @@ module Ford
       end
       
     end
-    
-    
+     
     #
     # Initialize the stage 
     #
-    def initialize(options={})
+    def initialize(options = {})
       data = {
-        :debug => false, # If true, logs messages during execution
+        :debug => Ford.debug, # If true, logs messages during execution
         :log_to => STDOUT, # Logging path or IO instance
         :from_stage => self.class # Reference of the Stage that is used as data input (normally, itself). Will load items from its queue.
       }.merge(options)
@@ -118,7 +117,7 @@ module Ford
     # Pop an item from the queue
     #
     def pop_item
-      @config.from_stage.queue.pop
+      self.class.queue.pop
     end
     
     #
