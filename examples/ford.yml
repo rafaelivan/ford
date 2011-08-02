@@ -1,0 +1,10 @@
+development:
+  run_local: ['Stage1', 'Stage2']
+  stages:
+    Stage1:
+      host: 'localhost'
+      port: '10000'
+    Stage2:
+      host: 'localhost'
+      port: '10001'
+

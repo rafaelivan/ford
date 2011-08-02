@@ -2,13 +2,20 @@ require 'rubygems'
 require 'ford'
 
 module MyPipeline
+
+  def self.run
+    MyPipeline::Stage1.init_stage(:threads => 1, :debug => true)
+    MyPipeline::Stage2.init_stage(:threads => 3, :debug => true)
+    
+    Ford.join
+  end
   
   class Stage1 < Ford::Stage
     
     # Override method run
     def run
       
-      10.times do |i|
+      50.times do |i|
         send_to Stage2, 'obj'
       end
       
@@ -23,13 +30,6 @@ module MyPipeline
       puts @input
     end
     
-  end
-  
-  def self.run
-    MyPipeline::Stage1.init_stage(:threads => 1, :debug => true)
-    MyPipeline::Stage2.init_stage(:threads => 3, :debug => true)
-    
-    Ford.join
   end
   
 end

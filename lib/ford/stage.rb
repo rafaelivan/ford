@@ -41,6 +41,10 @@ module Ford
       subclass.queue = Queue.new
     end
     
+    #
+    # Fork this stage
+    #
+    
     
     #
     # Create a stage in thread mode

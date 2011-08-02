@@ -1,5 +1,7 @@
 module Ford
 
+  
+
   #
   # Config class.
   # Based on http://mjijackson.com/2010/02/flexible-ruby-config-objects
