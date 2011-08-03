@@ -9,6 +9,7 @@ module FinishablePipeline
     FinishablePipeline::Stage1.init_stage(:threads => 1)
     FinishablePipeline::Stage2.init_stage(:threads => 3)
     
+    # Waits all finishing threads to finish before finishing the program.
     Ford.join
   end
   

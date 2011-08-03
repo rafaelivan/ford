@@ -9,6 +9,7 @@ module Pipeline
     Pipeline::Stage1.init_stage(:threads => 1, :debug => false)
     Pipeline::Stage2.init_stage(:threads => 3)
     
+    # Waits all threads to finish before finishing the program.
     Ford.join
   end
   

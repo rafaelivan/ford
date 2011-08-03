@@ -151,7 +151,7 @@ module Ford
 
           end
 
-          sleep 30
+          sleep 60
           
         end
        
