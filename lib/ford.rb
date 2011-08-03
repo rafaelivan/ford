@@ -11,6 +11,17 @@ module Ford
     @@debug = debug
   end
   
+  #
+  # Tells the pipeline will finish or not.
+  #
+  @@finishable = false
+  def self.finishable?
+    @@finishable
+  end
+  def self.finishable=finishable
+    @@finishable = finishable
+  end
+  
 end
 
 require 'ford/config'

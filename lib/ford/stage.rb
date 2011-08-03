@@ -2,8 +2,14 @@ require 'logger'
 
 module Ford
   
+  # Ford stages.
+  @@stages = []
+  def self.stages
+    @@stages
+  end
+  
   #
-  # Ford threads
+  # Ford threads.
   #
   @@threads = []
   def self.threads
@@ -11,10 +17,16 @@ module Ford
   end
   
   #
-  # Join all threads and wait them to finish
+  # Wait all stages to finish
   #
   def self.join
-    @@threads.each { |t| t.join }
+    
+    if Ford.finishable?
+      @@stages.each { |s| s.finishing_thread.join }
+    else
+      @@threads.each { |t| t.join }
+    end
+    
   end
 
   #
@@ -26,9 +38,7 @@ module Ford
     
     attr_accessor :config, :logger, :item
     
-    #
-    # Create a queue for each Stage subclass
-    #
+    # The stage's queue.
     @queue = Queue.new
     def self.queue
       @queue
@@ -37,30 +47,63 @@ module Ford
       @queue = queue
     end
     
-    def self.inherited(subclass)
-      subclass.queue = Queue.new
+    # Indicates wether the stage has finished or not.
+    @finished = false
+    def self.finished
+      @finished
+    end
+    def self.finished=finished
+      @finished = finished
+    end
+    
+    # The number of threads of the stage.
+    @number_of_threads = 1
+    def self.number_of_threads
+      @number_of_threads
+    end
+    def self.number_of_threads=n
+      @number_of_threads = n
+    end
+    
+    # The thread responsible for finishing the stage.
+    @finishing_thread = nil
+    def self.finishing_thread
+      @finishing_thread
+    end
+    def self.finishing_thread=finishing_thread
+      @finishing_thread = finishing_thread
     end
     
     #
-    # Fork this stage
+    # Sets some attributes of each inherited subclass.
     #
-    # TODO
+    def self.inherited(subclass)
+      subclass.queue = Queue.new
+      subclass.finished = false
+    end
     
     #
-    # Create a stage in thread mode
+    # Creates a stage in thread mode.
     #
     def self.init_stage(options = {})
+      
       options = {
         :threads => 1
       }.merge(options)
       
+      # Saves the number of threads of this stage.
+      self.number_of_threads = options[:threads]
+      
+      # Creates as many threads as requested.
       options[:threads].times do |tid|
+        
         options = options.clone
         options[:thread_id] = tid
         
         # Create a new thread
         t = Thread.new {
           obj = nil
+          
           begin
             obj = self.new(options)
             obj.run
@@ -75,12 +118,64 @@ module Ford
         
       end
       
+      # Creates a thread responsible for finishing the stage when all
+      # working threads get blocked.
+      self.finish_stage if Ford.finishable?
+      
+      Ford.stages.push self
+      
     end
+    
+    #
+    # Finishes the stage when all of its threads get blocked.
+    #
+    def self.finish_stage
+      
+      # If a finishable pipeline is being created, then it's necessary to create a 
+      # finishing thread for each stage.
+      self.finishing_thread = Thread.new {
+      
+        while true do
+                      
+          # Checks if all stage's threads are blocked.
+          # Special stages that doesn't use the queue should explicitly tell Ford that they have finished.
+          if self.finished or self.number_of_threads == self.queue.num_waiting
+          
+            # TODO
+            # Check if the previous stage is really finished before finishing this stage.
+
+            # The stage has finished.
+            self.finished = true
+
+            break
+
+          end
+
+          sleep 30
+          
+        end
+       
+      }
+       
+    end
+    
+    #
+    # Returns: true, if the stage has finished; false, otherwise.
+    #
+    def self.has_finished?
+      self.finished
+    end
+    
+    #
+    # Fork this stage
+    #
+    # TODO
      
     #
-    # Initialize the stage 
+    # Initializes the stage.
     #
     def initialize(options = {})
+      
       data = {
         :debug => Ford.debug, # If true, logs messages during execution
         :log_to => STDOUT, # Logging path or IO instance
@@ -89,21 +184,25 @@ module Ford
       
       @config = Ford::Config.new(data) # instance configuration
       @logger = Logger.new(@config.log_to) # instance logger
-      @logger.level = @config.debug ? Logger::DEBUG : Logger::INFO      
+      @logger.level = @config.debug ? Logger::DEBUG : Logger::INFO
+      
     end
     
     #
-    # Run the stage
+    # Runs the stage.
     #
-    def run      
+    def run
+      
       while (@item = pop_item)
+        
         start_consume_at = Time.now
         
         logger.debug("Consuming...(#{config.thread_id})")
         consume
-        
         logger.debug("Consumed in #{Time.now - start_consume_at} seconds (#{config.thread_id})")
-      end      
+        
+      end
+          
     end
     
     #

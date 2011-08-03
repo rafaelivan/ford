@@ -1,13 +1,13 @@
 require 'rubygems'
 require 'ford'
 
-module MyPipeline
+module Pipeline
 
   def self.run
     Ford.debug = true # Default debugging behaviour.
     
-    MyPipeline::Stage1.init_stage(:threads => 1, :debug => false)
-    MyPipeline::Stage2.init_stage(:threads => 3)
+    Pipeline::Stage1.init_stage(:threads => 1, :debug => false)
+    Pipeline::Stage2.init_stage(:threads => 3)
     
     Ford.join
   end
@@ -18,7 +18,7 @@ module MyPipeline
     def run
       
       50.times do |i|
-        send_to Stage2, 'obj'
+        send_to Stage2, "obj #{i}"
       end
       
     end
@@ -28,12 +28,12 @@ module MyPipeline
   class Stage2 < Ford::Stage
     
     def consume
-      sleep 1 # fake some processing
-      puts @input
+      sleep 1 # Fakes some processing.
+      puts @item
     end
     
   end
   
 end
 
-MyPipeline.run
+Pipeline.run
