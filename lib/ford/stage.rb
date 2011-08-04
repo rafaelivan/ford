@@ -17,7 +17,7 @@ module Ford
   end
   
   #
-  # Wait all stages to finish
+  # Waits all stages to finish.
   #
   def self.join
     
@@ -27,6 +27,23 @@ module Ford
       @@threads.each { |t| t.join }
     end
     
+  end
+  
+  #
+  # Checks if a given stage can finish itself.
+  #
+  # - stage: the stage asking to finish itself.
+  #
+  def self.can_finish? stage
+
+    # Checks the pipeline stages in linear order.
+    @@stages.each do |s|
+      
+      return true if stage == s
+      return false if not s.has_finished?
+
+    end
+
   end
 
   #
@@ -103,14 +120,14 @@ module Ford
         # Create a new thread
         t = Thread.new {
           obj = nil
-          
+
           begin
             obj = self.new(options)
             obj.run
           rescue Exception => exc
             obj.logger.fatal("\nFailed to execute the #{self.class}'s thread (#{tid})")
             obj.logger.fatal("was consuming: #{obj.item}")
-            obj.logger.fatal("#{exc}\n#{exc.backtrace.join("\n")}")
+            obj.logger.fatal("#{exc}\n#{exc.backtrace.join('\n')}")
           end
         }
         
@@ -135,23 +152,28 @@ module Ford
       # finishing thread for each stage.
       self.finishing_thread = Thread.new {
       
+        t = 2
         while true do
-                      
+          
+          # puts "#{self} - #{self.queue.num_waiting}/#{self.number_of_threads}"
+          
           # Checks if all stage's threads are blocked.
           # Special stages that doesn't use the queue should explicitly tell Ford that they have finished.
-          if self.finished or self.number_of_threads == self.queue.num_waiting
+          if self.has_finished? or self.number_of_threads == self.queue.num_waiting
           
-            # TODO
-            # Check if the previous stage is really finished before finishing this stage.
+            # Checks if the all previous stages are really finished before finishing this stage.
+            if Ford.can_finish? self
+              
+              # The stage has finished.
+              self.finished = true
 
-            # The stage has finished.
-            self.finished = true
-
-            break
+              break
+              
+            end
 
           end
 
-          sleep 60
+          sleep(t=[t*2,60].min)
           
         end
        
