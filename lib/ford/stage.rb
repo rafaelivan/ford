@@ -100,6 +100,24 @@ module Ford
     end
     
     #
+    # Describes the behaviour of each thread.
+    #
+    def self.thread_behaviour(options = {})
+      obj = nil
+
+      begin
+        obj = self.new(options)
+        obj.run
+      rescue Exception => exc
+        obj.logger.fatal("\nFailed to execute the #{self}'s thread (#{options[:thread_id]})")
+        obj.logger.fatal("was consuming: #{obj.item}")
+        obj.logger.fatal("#{exc}\n#{exc.backtrace.join('\n')}")
+        
+        self.thread_behaviour options
+      end
+    end
+    
+    #
     # Creates a stage in thread mode.
     #
     def self.init_stage(options = {})
@@ -119,16 +137,7 @@ module Ford
         
         # Create a new thread
         t = Thread.new {
-          obj = nil
-
-          begin
-            obj = self.new(options)
-            obj.run
-          rescue Exception => exc
-            obj.logger.fatal("\nFailed to execute the #{self.class}'s thread (#{tid})")
-            obj.logger.fatal("was consuming: #{obj.item}")
-            obj.logger.fatal("#{exc}\n#{exc.backtrace.join('\n')}")
-          end
+          self.thread_behaviour options
         }
         
         Ford.threads.push t
