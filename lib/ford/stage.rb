@@ -209,7 +209,7 @@ module Ford
       
       data = {
         :debug => Ford.debug, # If true, logs messages during execution
-        :log_to => STDOUT, # Logging path or IO instance
+        :log_to => Ford.log_to, # Logging path or IO instance
         :from_stage => self.class # Reference of the Stage that is used as data input (normally, itself). Will load items from its queue.
       }.merge(options)
       

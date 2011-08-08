@@ -22,6 +22,18 @@ module Ford
     @@finishable = finishable
   end
   
+  #
+  # Default logger output. 
+  # Any stage can override this configuration.
+  #
+  @@log_to = STDOUT
+  def self.log_to
+    @@log_to
+  end
+  def self.log_to=log_to
+    @@log_to = log_to
+  end
+  
 end
 
 require 'ford/config'
